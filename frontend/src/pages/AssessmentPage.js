@@ -42,6 +42,49 @@ export default function AssessmentPage({ questionSet, onComplete, onBack }) {
   const timerRef = useRef();
   const { id: qsId, questions } = questionSet;
 
+  // Start attempt
+  useEffect(() => {
+    if (phase === 'questions' && !attemptId) {
+      candidateAPI.startAttempt({ userId: questionSet._userId, questionSetId: qsId })
+        .then(a => setAttemptId(a.id))
+        .catch(err => alert(err.message));
+    }
+  }, [phase, attemptId, qsId, questionSet._userId]);
+
+  const handleAnswer = (qId, optIdx) => {
+    setAnswers(a => ({ ...a, [qId]: optIdx }));
+  };
+
+  const handleSubmit = useCallback(async (autoSubmit = false) => {
+    if (!autoSubmit && !window.confirm('Submit your assessment? You cannot change answers after submission.')) return;
+    clearInterval(timerRef.current);
+    setSubmitting(true);
+    try {
+      const res = await candidateAPI.submitAttempt(attemptId, {
+        answers, faceVerified, voiceVerified, trustScore
+      });
+      setResult(res);
+      setPhase('result');
+    } catch (err) { alert(err.message); }
+    setSubmitting(false);
+  }, [attemptId, answers, faceVerified, voiceVerified, trustScore]);
+
+  // Timer
+  useEffect(() => {
+    if (phase !== 'questions') return;
+    timerRef.current = setInterval(() => {
+      setSecondsLeft(s => {
+        if (s <= 1) { clearInterval(timerRef.current); handleSubmit(true); return 0; }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [phase, attemptId, handleSubmit]);
+
+  // ── These must be declared BEFORE any conditional returns ──
+  const answeredCount = Object.keys(answers).length;
+  const progress = questions.length > 0 ? ((currentQ + 1) / questions.length) * 100 : 0;
+  const q = questions[currentQ];
 
   // ── VERIFY PHASE ──────────────────────────────────────────────────────────
   if (phase === 'verify') {
@@ -171,20 +214,20 @@ export default function AssessmentPage({ questionSet, onComplete, onBack }) {
 
         {/* Answer Review */}
         <h3 style={{ fontFamily: 'Syne, sans-serif', marginBottom: 16 }}>Answer Review</h3>
-        {questions.map((q, i) => {
-          const userAns = answers[q.id];
-          const isCorrect = userAns === q.correct;
+        {questions.map((ques, i) => {
+          const userAns = answers[ques.id];
+          const isCorrect = userAns === ques.correct;
           return (
-            <div key={q.id} className="card" style={{ marginBottom: 12, padding: '16px 18px' }}>
+            <div key={ques.id} className="card" style={{ marginBottom: 12, padding: '16px 18px' }}>
               <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                 <span style={{ color: isCorrect ? 'var(--success)' : 'var(--danger)', fontSize: 16 }}>{isCorrect ? '✅' : '❌'}</span>
-                <span style={{ fontSize: 14, fontWeight: 600 }}>Q{i + 1}. {q.text}</span>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>Q{i + 1}. {ques.text}</span>
               </div>
-              {q.options.map((opt, oi) => (
-                <div key={oi} style={{ padding: '6px 10px', borderRadius: 6, marginBottom: 4, fontSize: 13, display: 'flex', gap: 8, background: oi === q.correct ? 'rgba(16,185,129,0.1)' : oi === userAns ? 'rgba(239,68,68,0.1)' : 'transparent', color: oi === q.correct ? 'var(--success)' : oi === userAns ? 'var(--danger)' : 'var(--text2)' }}>
+              {ques.options.map((opt, oi) => (
+                <div key={oi} style={{ padding: '6px 10px', borderRadius: 6, marginBottom: 4, fontSize: 13, display: 'flex', gap: 8, background: oi === ques.correct ? 'rgba(16,185,129,0.1)' : oi === userAns ? 'rgba(239,68,68,0.1)' : 'transparent', color: oi === ques.correct ? 'var(--success)' : oi === userAns ? 'var(--danger)' : 'var(--text2)' }}>
                   <span style={{ fontWeight: 700 }}>{String.fromCharCode(65 + oi)}.</span> {opt}
-                  {oi === q.correct && ' ✓ Correct'}
-                  {oi === userAns && oi !== q.correct && ' ✗ Your Answer'}
+                  {oi === ques.correct && ' ✓ Correct'}
+                  {oi === userAns && oi !== ques.correct && ' ✗ Your Answer'}
                 </div>
               ))}
             </div>
@@ -195,7 +238,6 @@ export default function AssessmentPage({ questionSet, onComplete, onBack }) {
   }
 
   // ── QUESTIONS PHASE ───────────────────────────────────────────────────────
-  const q = questions[currentQ];
   return (
     <div className="assessment-container">
       {/* Header */}
