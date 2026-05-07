@@ -1,4 +1,4 @@
-const BASE = 'http://localhost:5000/api';
+const API_BASE = "https://echohire-api-elsk.onrender.com";
 
 const api = async (path, opts = {}) => {
   const res = await fetch(`${BASE}${path}`, {
