@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { candidateAPI } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
-import { categoryConfig, formatDate, getScoreColor, fitmentConfig } from '../utils/helpers';
+import { categoryConfig, formatDate, getScoreColor } from '../utils/helpers';
 import FitmentBadge from '../components/FitmentBadge';
 
 export default function CandidateDashboard({ onStartAssessment }) {

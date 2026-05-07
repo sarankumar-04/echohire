@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { qsAPI, adminAPI } from '../utils/api';
-import { categoryConfig, languageConfig, districtList, formatDate } from '../utils/helpers';
+import { categoryConfig, languageConfig, formatDate } from '../utils/helpers';
 
 const EMPTY_QUESTION = { text: '', options: ['', '', '', ''], correct: 0, marks: 10 };
 

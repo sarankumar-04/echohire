@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminAPI } from '../utils/api';
-import { fitmentConfig, categoryConfig, formatDate, getScoreColor } from '../utils/helpers';
+import { fitmentConfig, categoryConfig, getScoreColor } from '../utils/helpers';
 
 const ScoreRing = ({ value, size = 80, color }) => {
   const r = (size / 2) - 8;
