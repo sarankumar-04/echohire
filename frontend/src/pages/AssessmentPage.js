@@ -43,7 +43,7 @@ export default function AssessmentPage({ questionSet, onComplete, onBack }) {
   const { id: qsId, questions } = questionSet;
 
   // Start attempt
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (phase === 'questions' && !attemptId) {
       candidateAPI.startAttempt({ userId: questionSet._userId, questionSetId: qsId })
