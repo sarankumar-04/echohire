@@ -42,47 +42,6 @@ export default function AssessmentPage({ questionSet, onComplete, onBack }) {
   const timerRef = useRef();
   const { id: qsId, questions } = questionSet;
 
-  // Start attempt
-  useEffect(() => {
-    if (phase === 'questions' && !attemptId) {
-      candidateAPI.startAttempt({ userId: questionSet._userId, questionSetId: qsId })
-        .then(a => setAttemptId(a.id))
-        .catch(err => alert(err.message));
-    }
-  }, [phase, attemptId, qsId, questionSet._userId]);
-
-  // Timer
-  useEffect(() => {
-    if (phase !== 'questions') return;
-    timerRef.current = setInterval(() => {
-      setSecondsLeft(s => {
-        if (s <= 1) { clearInterval(timerRef.current); handleSubmit(true); return 0; }
-        return s - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timerRef.current);
-  }, [phase, attemptId, handleSubmit]);
-
-  const handleAnswer = (qId, optIdx) => {
-    setAnswers(a => ({ ...a, [qId]: optIdx }));
-  };
-
-  const handleSubmit = useCallback(async (autoSubmit = false) => {
-    if (!autoSubmit && !window.confirm('Submit your assessment? You cannot change answers after submission.')) return;
-    clearInterval(timerRef.current);
-    setSubmitting(true);
-    try {
-      const res = await candidateAPI.submitAttempt(attemptId, {
-        answers, faceVerified, voiceVerified, trustScore
-      });
-      setResult(res);
-      setPhase('result');
-    } catch (err) { alert(err.message); }
-    setSubmitting(false);
-  }, [attemptId, answers, faceVerified, voiceVerified, trustScore]);
-
-  const answeredCount = Object.keys(answers).length;
-  const progress = ((currentQ + 1) / questions.length) * 100;
 
   // ── VERIFY PHASE ──────────────────────────────────────────────────────────
   if (phase === 'verify') {
