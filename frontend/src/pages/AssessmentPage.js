@@ -43,17 +43,15 @@ export default function AssessmentPage({ questionSet, onComplete, onBack }) {
   const { id: qsId, questions } = questionSet;
 
   // Start attempt
-// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (phase === 'questions' && !attemptId) {
       candidateAPI.startAttempt({ userId: questionSet._userId, questionSetId: qsId })
         .then(a => setAttemptId(a.id))
         .catch(err => alert(err.message));
     }
-  }, [phase]);
+  }, [phase, attemptId, qsId, questionSet._userId]);
 
   // Timer
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (phase !== 'questions') return;
     timerRef.current = setInterval(() => {
@@ -63,7 +61,7 @@ export default function AssessmentPage({ questionSet, onComplete, onBack }) {
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, [phase, attemptId]);
+  }, [phase, attemptId, handleSubmit]);
 
   const handleAnswer = (qId, optIdx) => {
     setAnswers(a => ({ ...a, [qId]: optIdx }));
